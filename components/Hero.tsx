@@ -40,7 +40,7 @@ export default function Hero() {
 
       <div className="col-12 col-md-5">
         <img
-          src="/victory-hero.png"
+          src="/VictoryDigitalLogo.png"
           alt="Victory Digital"
           width={500}
           height={500}
