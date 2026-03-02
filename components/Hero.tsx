@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { Play } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 
 export default function Hero() {
@@ -40,45 +39,13 @@ export default function Hero() {
       </div>
 
       <div className="col-12 col-md-5">
-        <div className="position-relative">
-          <div className="overflow-hidden rounded-2xl border border-vd-border bg-vd-card shadow-soft">
-            <div className="position-relative aspect-video bg-black" style={{ minHeight: 200 }}>
-              <Image
-                src="/victory-digital-logo.png"
-                alt="Victory Digital"
-                fill
-                className="object-contain p-4"
-                style={{ objectPosition: "center" }}
-                sizes="(max-width: 768px) 100vw, 400px"
-              />
-              <button
-                type="button"
-                className="position-absolute inset-0 d-flex align-items-center justify-content-center bg-black-40 border-0 w-100 h-100 transition-colors"
-                style={{ top: 0, left: 0, right: 0, bottom: 0 }}
-                aria-label={h.videoTitle}
-              >
-                <span
-                  className="d-flex align-items-center justify-content-center rounded-circle text-vd-red backdrop-blur-sm"
-                  style={{
-                    height: 64,
-                    width: 64,
-                    border: "1px solid rgba(255,255,255,0.3)",
-                    background: "rgba(255,255,255,0.1)",
-                  }}
-                >
-                  <Play style={{ height: 32, width: 32, fill: "currentColor" }} />
-                </span>
-              </button>
-            </div>
-            <div className="border-top border-vd-border px-3 py-2">
-              <p className="fs-sm fw-medium text-zinc-100 mb-0">
-                {h.videoTitle}{" "}
-                <span className="text-vd-muted">({h.videoDuration})</span>
-              </p>
-              <p className="fs-xs text-vd-muted mb-0">{h.videoSubtitle}</p>
-            </div>
-          </div>
-        </div>
+        <img
+          src="/victory-hero.png"
+          alt="Victory Digital"
+          width={500}
+          height={500}
+          style={{ objectFit: "contain", maxHeight: 400 }}
+        />
       </div>
     </div>
   );
