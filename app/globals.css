@@ -22,23 +22,12 @@ html {
 
 body {
   background-color: var(--vd-background);
-  background-image: url("/BackgroundImage-mobile.jpeg");
-  background-repeat: no-repeat;
-  background-size: 100% auto;
-  background-position: top center;
-  background-attachment: scroll;
   color: #f4f4f5;
   font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont,
     "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-}
-
-@media (min-width: 768px) {
-  body {
-    background-image: url("/BackgroundImage-desktop.png");
-  }
 }
 
 /* ===== Custom Utility Classes ===== */
@@ -421,4 +410,106 @@ img.senin-logo-classi {
 
 .chatbot-messages::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+/* ===== Process Card Hover ===== */
+/* ===== Process Card Hover ===== */
+.process-card:hover {
+  background-color: var(--vd-card) !important;
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+  border-left-color: var(--vd-red) !important;
+}
+
+.process-card:hover .process-card-highlight {
+  transform: scaleY(1) !important;
+}
+
+.process-card:hover .process-card-number {
+  color: var(--vd-red) !important;
+  opacity: 1 !important;
+}
+
+/* ===== Scenario Card Hover ===== */
+.scenario-card:hover {
+  border-top-color: var(--vd-red) !important;
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== FAQ Item Hover ===== */
+.faq-item:hover {
+  border-color: rgba(225, 29, 46, 0.4) !important;
+  border-left-color: var(--vd-red) !important;
+}
+
+/* ===== Testimonial Card Hover ===== */
+.testimonial-card:hover {
+  background-color: #111114 !important;
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+  border-top-color: var(--vd-red) !important;
+}
+
+/* ===== Scroll Reveals ===== */
+.reveal-up {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-up.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-fade {
+  opacity: 0;
+  transition: opacity 1s ease-out;
+}
+
+.reveal-fade.is-visible {
+  opacity: 1;
+}
+
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-left.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.reveal-right {
+  opacity: 0;
+  transform: translateX(40px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-right.is-visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.delay-100 {
+  transition-delay: 100ms;
+}
+
+.delay-200 {
+  transition-delay: 200ms;
+}
+
+.delay-300 {
+  transition-delay: 300ms;
+}
+
+.delay-400 {
+  transition-delay: 400ms;
+}
+
+.delay-500 {
+  transition-delay: 500ms;
 }

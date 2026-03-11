@@ -234,11 +234,6 @@ export const translations = {
             "Reklamda ilk veriler birkaç hafta içinde gelir. Local SEO'da sıralama ve arama hareketi genelde 4–8 hafta sonra başlar. Süre sektör ve rekabete göre değişir; ilk görüşmede kabaca söyleriz.",
         },
         {
-          question: "Reklam bütçesi ayrı mı?",
-          answer:
-            "Evet. Yönetim ücreti bizden; reklam platformlarına (Google, Meta vb.) harcanan tutar ayrıdır. Bütçe önerisini analiz sonrası veriyoruz.",
-        },
-        {
           question: "Local SEO ve reklam birlikte mi daha iyi?",
           answer:
             "Çoğu yerel işletme için ikisi birlikte daha güçlü: biri aranırken görünürlük, diğeri anlık talep. Tek kanal da mümkün; hedefe göre seçiyoruz.",
@@ -516,11 +511,6 @@ export const translations = {
           question: "How soon will I see results?",
           answer:
             "First ad data comes within a few weeks. For Local SEO, ranking and search movement usually start after 4–8 weeks. Timing depends on sector and competition; we give a rough estimate in the first meeting.",
-        },
-        {
-          question: "Is ad spend separate?",
-          answer:
-            "Yes. Management fee is from us; spend on ad platforms (Google, Meta, etc.) is separate. We suggest budget after the analysis.",
         },
         {
           question: "Are Local SEO and ads better together?",

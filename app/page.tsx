@@ -1,3 +1,5 @@
+"use client";
+
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import StatsChips from "@/components/StatsChips";
@@ -7,9 +9,13 @@ import Process from "@/components/Process";
 import ScenarioCards from "@/components/ScenarioCards";
 import Testimonials from "@/components/Testimonials";
 import FAQ from "@/components/FAQ";
+import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 
 export default function Home() {
+  useScrollReveal();
+
   return (
     <div className="min-h-screen text-zinc-100" style={{ overflowX: "hidden" }}>
       <Navbar />
@@ -27,6 +33,7 @@ export default function Home() {
         <ScenarioCards />
         <Testimonials />
         <FAQ />
+        <Contact />
       </main>
       <Footer />
     </div>

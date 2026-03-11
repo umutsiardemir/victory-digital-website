@@ -14,11 +14,11 @@ import ServiceRailCard from "@/components/ui/service-rail-card";
 import { useLanguage } from "@/context/LanguageContext";
 
 const CARD_META = [
-  { imageKey: "social-media-management", icon: Share2, featured: false },
-  { imageKey: "local-seo", icon: MapPin, featured: false },
-  { imageKey: "ai-automations", icon: Sparkles, featured: true },
-  { imageKey: "google-ads", icon: MousePointerClick, featured: false },
-  { imageKey: "meta-ads", icon: Megaphone, featured: false },
+  { imageKey: "services/sosyal-medya", icon: Share2, featured: false },
+  { imageKey: "services/lokal-seo", icon: MapPin, featured: false },
+  { imageKey: "services/ai-otomasyon", icon: Sparkles, featured: true },
+  { imageKey: "services/google-ads", icon: MousePointerClick, featured: false },
+  { imageKey: "services/meta-ads", icon: Megaphone, featured: false },
 ];
 
 export default function ServicesRailSection() {
@@ -154,26 +154,25 @@ export default function ServicesRailSection() {
         >
           {sr.cards.map((card, i) => {
             const meta = CARD_META[i];
-            const suffix = locale === "tr" ? "_tr" : "_en";
-            const imageSrc = `/${meta.imageKey}${suffix}.jpeg`;
+            const imageSrc = `/${meta.imageKey}.webp`;
             return (
-            <div
-              key={card.title}
-              className="shrink-0"
-              style={{ scrollSnapAlign: "start" }}
-            >
-              <ServiceRailCard
-                title={card.title}
-                imageSrc={imageSrc}
-                imageAlt={card.title}
-                tags={[...card.tags] as [string, string, string]}
-                ctaLabel={sr.cta}
-                icon={meta.icon}
-                featured={meta.featured ? sr.featuredBadge : undefined}
-                href="#iletisim"
-                style={{ height: 380, width: "min(400px, 85vw)" }}
-              />
-            </div>
+              <div
+                key={card.title}
+                className="shrink-0"
+                style={{ scrollSnapAlign: "start" }}
+              >
+                <ServiceRailCard
+                  title={card.title}
+                  imageSrc={imageSrc}
+                  imageAlt={card.title}
+                  tags={[...card.tags] as [string, string, string]}
+                  ctaLabel={sr.cta}
+                  icon={meta.icon}
+                  featured={meta.featured ? sr.featuredBadge : undefined}
+                  href="#iletisim"
+                  style={{ height: 380, width: "min(400px, 85vw)" }}
+                />
+              </div>
             );
           })}
         </div>

@@ -137,7 +137,7 @@ export default function ChatBot() {
                         transition: "transform 0.2s, box-shadow 0.2s",
                     }}
                 >
-                    <MessageCircle style={{ width: 28, height: 28 }} />
+                    <Bot style={{ width: 28, height: 28 }} />
                 </button>
             )}
 

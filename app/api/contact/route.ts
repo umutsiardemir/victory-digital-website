@@ -23,10 +23,10 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        const toEmail = process.env.CONTACT_TO_EMAIL || "hello@victorydigital.com";
+        const toEmail = process.env.CONTACT_TO_EMAIL || "hello@victorydgtl.com";
 
         await transporter.sendMail({
-            from: `"Victory Digital Form" <${process.env.SMTP_USER}>`,
+            from: `"${name} (Website Form)" <${process.env.SMTP_USER}>`,
             to: toEmail,
             replyTo: email,
             subject: `Yeni İletişim Formu: ${name}`,

@@ -72,7 +72,7 @@ export default function Contact() {
                 </p>
                 <p className="mb-0">
                   E‑posta:{" "}
-                  <span className="text-zinc-200">hello@victorydigital.com</span>
+                  <span className="text-zinc-200">hello@victorydgtl.com</span>
                 </p>
               </div>
             </div>
