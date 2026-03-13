@@ -7,20 +7,24 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
-// ─── Rate Limiting (IP Bazlı) ───────────────────────────────────────────────
-// Her IP adresi belirli bir süre içinde sınırlı sayıda istek atabilir.
+// ─── Rate Limiting (IP Bazlı - Dakikalık) ───────────────────────────────────
 const RATE_LIMIT_WINDOW_MS = 60 * 1000; // 1 dakika
 const RATE_LIMIT_MAX_REQUESTS = 10; // 1 dakikada max 10 istek
 
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
+// ─── Günlük Kullanım Limiti (IP Bazlı) ─────────────────────────────────────
+const DAILY_LIMIT = 30; // Günde max 30 mesaj per IP
+const dailyUsageMap = new Map<string, { count: number; resetTime: number }>();
+
 // Her 5 dakikada süresi dolmuş kayıtları temizle (bellek sızıntısı önleme)
 setInterval(() => {
     const now = Date.now();
     for (const [key, value] of rateLimitMap.entries()) {
-        if (now > value.resetTime) {
-            rateLimitMap.delete(key);
-        }
+        if (now > value.resetTime) rateLimitMap.delete(key);
+    }
+    for (const [key, value] of dailyUsageMap.entries()) {
+        if (now > value.resetTime) dailyUsageMap.delete(key);
     }
 }, 5 * 60 * 1000);
 
@@ -34,11 +38,31 @@ function isRateLimited(ip: string): boolean {
     }
 
     record.count++;
-    if (record.count > RATE_LIMIT_MAX_REQUESTS) {
-        return true;
+    return record.count > RATE_LIMIT_MAX_REQUESTS;
+}
+
+function checkDailyLimit(ip: string): { allowed: boolean; remaining: number } {
+    const now = Date.now();
+    const record = dailyUsageMap.get(ip);
+
+    // Gece yarısına kadar süre hesapla
+    const midnight = new Date();
+    midnight.setHours(24, 0, 0, 0);
+    const msUntilMidnight = midnight.getTime() - now;
+
+    if (!record || now > record.resetTime) {
+        dailyUsageMap.set(ip, { count: 1, resetTime: now + msUntilMidnight });
+        return { allowed: true, remaining: DAILY_LIMIT - 1 };
     }
 
-    return false;
+    record.count++;
+    const remaining = Math.max(0, DAILY_LIMIT - record.count);
+
+    if (record.count > DAILY_LIMIT) {
+        return { allowed: false, remaining: 0 };
+    }
+
+    return { allowed: true, remaining };
 }
 
 // ─── İzin Verilen Origin'ler ────────────────────────────────────────────────
@@ -46,29 +70,55 @@ const ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://victorydgtl.com",
     "https://www.victorydgtl.com",
-    // Vercel preview URL'leri
 ];
 
 function isAllowedOrigin(request: NextRequest): boolean {
     const origin = request.headers.get("origin");
     const referer = request.headers.get("referer");
 
-    // Origin kontrolü
     if (origin) {
         if (ALLOWED_ORIGINS.some((allowed) => origin.startsWith(allowed))) return true;
-        // Vercel preview URL'lerini de kabul et
         if (origin.endsWith(".vercel.app")) return true;
         return false;
     }
 
-    // Referer kontrolü (bazı tarayıcılar origin yerine referer gönderir)
     if (referer) {
         if (ALLOWED_ORIGINS.some((allowed) => referer.startsWith(allowed))) return true;
         if (referer.includes(".vercel.app")) return true;
         return false;
     }
 
-    // Ne origin ne referer yoksa reddet (curl, Postman gibi araçlar)
+    return false;
+}
+
+// ─── Argo / Küfür / Spam Filtresi ──────────────────────────────────────────
+// Türkçe ve İngilizce yaygın argo/küfür kelimeleri (küçük harfle)
+const BLOCKED_WORDS = [
+    // Türkçe
+    "amk", "aq", "amına", "amına koyayım", "amınakoyim", "sikeyim", "sikerim",
+    "siktir", "siktir git", "piç", "orospu", "oç", "yarrak", "yarak", "taşak",
+    "göt", "götünü", "pezevenk", "kahpe", "ibne", "gerizekalı", "aptal orospu",
+    "ananı", "ananızı", "siktiğimin", "amcık", "dalyarak", "dangalak", "puşt",
+    "mal mısın", "salak mısın", "kodumun", "hasiktir",
+    // İngilizce
+    "fuck", "shit", "ass", "bitch", "bastard", "dick", "pussy", "cock",
+    "motherfucker", "stfu", "wtf", "asshole", "dumbass", "bullshit",
+    "nigger", "nigga", "retard", "faggot", "whore", "slut",
+];
+
+function containsBlockedContent(text: string): boolean {
+    const lower = text.toLowerCase().trim();
+
+    // Argo kelime kontrolü
+    for (const word of BLOCKED_WORDS) {
+        // Kelime sınırlarını da kontrol et (ör: "sik" kelimesi "sikiş"te de yakalar)
+        if (lower.includes(word)) return true;
+    }
+
+    // Tekrarlayan anlamsız karakter spam kontrolü (ör: "aaaaaa", "asdasd")
+    if (/(.)\1{5,}/.test(lower)) return true; // aynı karakter 6+ kez
+    if (/(.{2,4})\1{3,}/.test(lower)) return true; // aynı pattern 4+ kez (asdasdasd)
+
     return false;
 }
 
@@ -133,8 +183,8 @@ const SYSTEM_PROMPT = `Sen Victory Digital'in AI asistanısın. Victory Digital,
 7. Samimi ve profesyonel bir ton kullan.`;
 
 // ─── Sabitler ───────────────────────────────────────────────────────────────
-const MAX_MESSAGE_LENGTH = 500; // Tek mesaj max 500 karakter
-const MAX_MESSAGES_COUNT = 20; // Konuşma geçmişi max 20 mesaj
+const MAX_MESSAGE_LENGTH = 500;
+const MAX_MESSAGES_COUNT = 20;
 
 export async function POST(request: NextRequest) {
     try {
@@ -146,12 +196,13 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 2) Rate limiting
+        // 2) IP al
         const ip =
             request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
             request.headers.get("x-real-ip") ||
             "unknown";
 
+        // 3) Rate limiting (dakikalık)
         if (isRateLimited(ip)) {
             return NextResponse.json(
                 { error: "Çok fazla istek gönderdiniz. Lütfen bir dakika bekleyin." },
@@ -159,7 +210,20 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 3) Body kontrolü
+        // 4) Günlük kullanım limiti
+        const dailyCheck = checkDailyLimit(ip);
+        if (!dailyCheck.allowed) {
+            return NextResponse.json(
+                {
+                    error: "Günlük mesaj limitinize ulaştınız. Yarın tekrar deneyebilirsiniz. Acil bir sorunuz varsa hello@victorydgtl.com adresine yazabilirsiniz.",
+                    dailyLimitReached: true,
+                    remaining: 0,
+                },
+                { status: 429 }
+            );
+        }
+
+        // 5) Body kontrolü
         const { messages } = await request.json();
 
         if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -169,7 +233,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 4) Mesaj sayısı sınırı
+        // 6) Mesaj sayısı sınırı
         if (messages.length > MAX_MESSAGES_COUNT) {
             return NextResponse.json(
                 { error: "Too many messages" },
@@ -177,7 +241,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 5) Her mesajın uzunluk kontrolü ve sanitizasyonu
+        // 7) Her mesajın uzunluk kontrolü, sanitizasyonu ve argo filtresi
         for (const msg of messages) {
             if (
                 typeof msg.content !== "string" ||
@@ -195,9 +259,20 @@ export async function POST(request: NextRequest) {
                     { status: 400 }
                 );
             }
+
+            // Sadece user mesajlarını filtrele
+            if (msg.role === "user" && containsBlockedContent(msg.content)) {
+                return NextResponse.json(
+                    {
+                        error: "Mesajınız uygunsuz içerik barındırıyor. Lütfen kurallara uygun bir şekilde yazın.",
+                        blocked: true,
+                    },
+                    { status: 400 }
+                );
+            }
         }
 
-        // 6) API key kontrolü
+        // 8) API key kontrolü
         if (!process.env.OPENAI_API_KEY) {
             return NextResponse.json(
                 { error: "OpenAI API key is not configured" },
@@ -205,7 +280,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // 7) OpenAI isteği
+        // 9) OpenAI isteği
         const completion = await openai.chat.completions.create({
             model: "gpt-4o-mini",
             messages: [
@@ -221,7 +296,10 @@ export async function POST(request: NextRequest) {
 
         const reply = completion.choices[0]?.message?.content || "";
 
-        return NextResponse.json({ reply });
+        return NextResponse.json({
+            reply,
+            remaining: dailyCheck.remaining,
+        });
     } catch (error: unknown) {
         console.error("Chat API error:", error);
 

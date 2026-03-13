@@ -17,6 +17,9 @@ const CHAT_LABELS = {
         greeting:
             "Merhaba! 👋 Ben Victory Digital'in AI asistanıyım. Size dijital pazarlama hizmetlerimiz hakkında yardımcı olabilirim. Ne sormak istersiniz?",
         errorMsg: "Bir hata oluştu. Lütfen tekrar deneyin.",
+        blockedMsg: "Uygunsuz içerik tespit edildi. Lütfen kurallara uygun yazın.",
+        dailyLimitMsg: "Günlük mesaj limitinize ulaştınız. Yarın tekrar deneyebilirsiniz veya hello@victorydgtl.com adresine yazabilirsiniz.",
+        remainingFew: "mesaj hakkınız kaldı",
     },
     en: {
         title: "Victory Digital AI",
@@ -25,6 +28,9 @@ const CHAT_LABELS = {
         greeting:
             "Hello! 👋 I'm Victory Digital's AI assistant. I can help you learn about our digital marketing services. What would you like to know?",
         errorMsg: "An error occurred. Please try again.",
+        blockedMsg: "Inappropriate content detected. Please follow the rules.",
+        dailyLimitMsg: "You've reached your daily message limit. Please try again tomorrow or email hello@victorydgtl.com.",
+        remainingFew: "messages remaining",
     },
 };
 
@@ -38,6 +44,8 @@ export default function ChatBot() {
     ]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
+    const [remaining, setRemaining] = useState<number | null>(null);
+    const [dailyLimitReached, setDailyLimitReached] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -90,6 +98,20 @@ export default function ChatBot() {
                 setMessages((prev) => [
                     ...prev,
                     { role: "assistant", content: data.reply },
+                ]);
+                if (typeof data.remaining === "number") {
+                    setRemaining(data.remaining);
+                }
+            } else if (data.dailyLimitReached) {
+                setDailyLimitReached(true);
+                setMessages((prev) => [
+                    ...prev,
+                    { role: "assistant", content: labels.dailyLimitMsg },
+                ]);
+            } else if (data.blocked) {
+                setMessages((prev) => [
+                    ...prev,
+                    { role: "assistant", content: labels.blockedMsg },
                 ]);
             } else {
                 setMessages((prev) => [
@@ -298,6 +320,23 @@ export default function ChatBot() {
                         <div ref={messagesEndRef} />
                     </div>
 
+                    {/* Remaining messages indicator */}
+                    {remaining !== null && remaining <= 10 && !dailyLimitReached && (
+                        <div
+                            style={{
+                                padding: "6px 16px",
+                                background: remaining <= 5 ? "rgba(239, 68, 68, 0.15)" : "rgba(250, 204, 21, 0.1)",
+                                borderTop: "1px solid rgba(255,255,255,0.04)",
+                                fontSize: 12,
+                                color: remaining <= 5 ? "#f87171" : "#facc15",
+                                textAlign: "center",
+                                flexShrink: 0,
+                            }}
+                        >
+                            ⚠️ {remaining} {labels.remainingFew}
+                        </div>
+                    )}
+
                     {/* Input */}
                     <div
                         style={{
@@ -312,10 +351,11 @@ export default function ChatBot() {
                                 display: "flex",
                                 alignItems: "center",
                                 gap: 8,
-                                background: "rgba(255,255,255,0.04)",
+                                background: dailyLimitReached ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.04)",
                                 borderRadius: 12,
                                 border: "1px solid rgba(255,255,255,0.08)",
                                 padding: "4px 4px 4px 14px",
+                                opacity: dailyLimitReached ? 0.5 : 1,
                             }}
                         >
                             <input
@@ -324,8 +364,8 @@ export default function ChatBot() {
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={handleKeyDown}
-                                placeholder={labels.placeholder}
-                                disabled={loading}
+                                placeholder={dailyLimitReached ? "—" : labels.placeholder}
+                                disabled={loading || dailyLimitReached}
                                 style={{
                                     flex: 1,
                                     background: "transparent",
@@ -337,7 +377,7 @@ export default function ChatBot() {
                             />
                             <button
                                 onClick={sendMessage}
-                                disabled={loading || !input.trim()}
+                                disabled={loading || !input.trim() || dailyLimitReached}
                                 className="d-flex align-items-center justify-content-center border-0"
                                 aria-label="Send message"
                                 style={{
@@ -345,15 +385,15 @@ export default function ChatBot() {
                                     height: 36,
                                     borderRadius: 8,
                                     background:
-                                        input.trim() && !loading
+                                        input.trim() && !loading && !dailyLimitReached
                                             ? "linear-gradient(135deg, #e11d2e, #b91425)"
                                             : "rgba(255,255,255,0.06)",
                                     color:
-                                        input.trim() && !loading
+                                        input.trim() && !loading && !dailyLimitReached
                                             ? "#fff"
                                             : "rgba(255,255,255,0.2)",
                                     cursor:
-                                        input.trim() && !loading ? "pointer" : "default",
+                                        input.trim() && !loading && !dailyLimitReached ? "pointer" : "default",
                                     transition: "all 0.2s",
                                     flexShrink: 0,
                                 }}
